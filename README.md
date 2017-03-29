@@ -16,16 +16,13 @@ gem 'mi-home', git: "git@github.com:mykhailog/mi-home.git"
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
-Or install it yourself as:
-
-    $ gem install mi-home
 
 ## Setup Gateway
 Before starting to use this gem you should setup development mode on your gateway.
 
-Here is instruction which I get from  [https://www.domoticz.com/wiki/Xiaomi_Gateway_(Aqara)][Domoticz]
+Here is instruction which I get from  [https://www.domoticz.com/wiki/Xiaomi_Gateway_(Aqara)]
 
 1. Install the App on a Android/iOS device
 2. Make sure you set your region to: Mainland China under settings -> Locale - at time of writing this seems to be required.
@@ -45,6 +42,7 @@ Note that the gateway needs to be at least version 2. Radio support on the gatew
 ## Usage
 ### Getting started
 ```ruby
+require 'mi_home'
 platform = MiHome::AqaraPlatform.new(password: "91bg8zfkf9vd6uw7")
 platform.connect
 
@@ -58,10 +56,11 @@ platform.devices.switch_button.click.register do
      light_switch.on!
    end  
 end
-
+platform.join
 ```
 or event simpler:
 ```ruby
+require 'mi_home'
 platform = MiHome::AqaraPlatform.new(password: "91bg8zfkf9vd6uw7")
 platform.connect
 platform.devices.with do
@@ -74,6 +73,7 @@ platform.devices.with do
        end  
      end  
 end
+platform.join
 ```
 ### Device managing
 If you have more than one device with the same type(e.g. two light swtiches,motion sensors, etc) you can find them using several methods:
