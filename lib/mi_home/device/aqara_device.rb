@@ -4,7 +4,8 @@ module MiHome
     class AqaraDevice
       include Unobservable::Support
       attr_accessor :gateway, :sid,:platform, :data
-      attr_event :on_changed
+      attr_event :changed
+
 
       def initialize
         @data={}
@@ -14,17 +15,26 @@ module MiHome
         @old_values = values
         @data = JSON.parse(message[:data], object_class: HashWithIndifferentAccess)
         @values = values
-        if @old_values != @values
-          raise_event :on_changed
+
+        changed_properties = (@old_values.to_a - @values.to_a).to_h
+        changed_properties.each do |property, value|
+          property_name = property.to_s.gsub('?', '')
+          is_boolean = property.to_s.ends_with? '?'
+          if is_boolean
+            if value
+              raise_event "#{property_name}".to_sym
+            end
+          else
+            raise_event "#{property_name}_changed".to_sym, @values[property], @old_values[property]
+          end
         end
-        (@old_values.to_a - @values.to_a).to_h.each do |property, value|
-          raise_event "on_#{property.to_s.gsub('?', '')}".to_sym, @values[property], @old_values[property]
+        if changed_properties
+          raise_event :changed, @old_values, @values
         end
 
         # only if it report trigger event
         if message[:cmd] == "report"
           event = self.class.events.detect { |event| @data[:status] == event.to_s }
-
           if event
             raise_event event
           end
@@ -101,7 +111,7 @@ module MiHome
         params||={}
         is_writable = params.delete(:changable)
         property_name = property.to_s.gsub('?', '')
-        attr_event "on_#{property_name}".to_sym
+
 
         if is_writable
           set_method = "#{property_name}=".to_sym
@@ -128,6 +138,11 @@ module MiHome
 
             @platform.__set_current_status self, new_data
           end
+        end
+        if is_boolean
+          attr_event "#{property_name}".to_sym
+        else
+          attr_event "#{property_name}_changed".to_sym
         end
         define_method property do
           if block

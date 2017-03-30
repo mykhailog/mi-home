@@ -38,8 +38,8 @@ module MiHome
     end
     def read
       # puts "before recieve"
-      message, rinfo = @server_socket.recvfrom(1024)
-    #  @log.debug message
+      message, rinfo = @server_socket.recvfrom(2048)
+      @log.debug message
       #  puts 'recv %s(%d bytes) from client' % [message, message.length]
       begin
         message = JSON.parse(message, object_class: HashWithIndifferentAccess);

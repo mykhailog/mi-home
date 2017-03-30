@@ -3,17 +3,19 @@ module MiHome
   class AqaraPlatform
 
     include Unobservable::Support
-    attr_accessor :log
+    attr_accessor :log,:raise_exceptions
     attr_event :ready
 
     def initialize(password: nil,
                    log: nil,
                    update_device_interval: 30 * 60,
-                   names: {})
+                   names: {},
+                   raise_exceptions:false,
+                   debug:false)
       @password = password
       unless log
         log = Logger.new(STDOUT)
-        log.level = Logger::INFO
+        log.level = debug ? Logger::DEBUG : Logger::INFO
       end
       @log = log
 
@@ -24,20 +26,20 @@ module MiHome
       @unknown_devices = nil
       @state = :init
       @update_device_list_interval = update_device_interval
-
+      @raise_exceptions = raise_exceptions
     end
 
-    def connect(wait_for_devices: true, timeout: 30)
+    def connect(wait_for_devices: true, timeout: 10)
       listen
       if wait_for_devices
-        Timeout::timeout(timeout) do
-          self.wait_for_devices
-        end
+        found_devices = self.wait_for_devices timeout: timeout
+        return false unless found_devices
       end
       if block_given?
         yield
         disconnect
       end
+      return true
     end
 
     def disconnect
@@ -51,10 +53,24 @@ module MiHome
       end
     end
 
-    def wait_for_devices
-      loop do
-        break if @state == :ready
-        sleep 0.05
+    def wait_for_devices timeout:5
+      tries = 3
+      Timeout::timeout(timeout) do
+        loop do
+          break if @state == :ready
+          sleep 0.05
+        end
+      end
+      return true
+    rescue TimeoutError => e
+      tries -= 1
+      if tries ==0
+        error "No devices found. Maybe gateway is not turned on?"
+        return false
+      else
+        @log.warn "Can't get device list. Try again #{tries}/3"
+        request_update_device_list
+        retry
       end
     end
 
@@ -66,6 +82,9 @@ module MiHome
     end
 
     def __set_current_status(device, data)
+      unless device.gateway.password
+        error no_password_message( device.gateway.sid)
+      end
       @transport.send_with_key({cmd: 'write', sid: device.sid, data: data.to_json},
                                password: device.gateway.password,
                                token: device.gateway.token,
@@ -77,11 +96,10 @@ module MiHome
     end
 
     protected
-    def update_device_list
+    def update_device_list_loop
       @update_device_list_thread = Thread.new do
         loop do
-          @log.info "Update device list..."
-          @transport.send({cmd: 'whois'})
+          request_update_device_list
           sleep @update_device_list_interval
         end
       end
@@ -100,7 +118,7 @@ module MiHome
         end
       end
       @message_thread.abort_on_exception = true
-      update_device_list
+      update_device_list_loop
     end
 
     def process_message(message, rinfo)
@@ -119,7 +137,7 @@ module MiHome
               if @password.is_a? Hash
                 gateway.password = @password[message[:sid]]
                 if gateway.password.nil?
-                  @log.warn("Can't find password for #{message[:sid]}. Please update password init to \n #{@password.dup.merge({message[:sid] => '<gateway password>'}).inspect}")
+                  @log.warn(no_password_message(message[:sid]))
                 end
               else
                 gateway.password = @password
@@ -156,7 +174,20 @@ module MiHome
           @log.warn "Unsupported #{command}. Can't process: #{message.to_json}"
       end
     end
-    protected
+    def request_update_device_list
+      @log.info "Update device list..."
+      @transport.send({cmd: 'whois'})
+    end
+    def no_password_message sid
+      "Can't find password for #{sid}. Please update password init to \n #{@password.dup.merge({sid => '<gateway password>'}).inspect}"
+    end
+    def error message
+      if @raise_exceptions
+        raise message
+      else
+        @log.error message
+      end
+    end
     def find_or_create_device(model:, sid:)
       device = @devices[sid]
       unless device

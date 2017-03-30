@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Mykhailo Goloborodko']
   spec.email         = ['mykhailo.goloborodko@gmail.com']
 
-  spec.summary       = %q{TODO: Ruby API for interacting with Mi Home sensors and devices.}
-  spec.description   = %q{TODO: Ruby API for interacting with Mi Home sensors and devices.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{Ruby API for interacting with Xiaomi Mi Home sensors and devices.}
+  spec.description   = %q{Ruby API for interacting with Xiaomi Mi Home sensors and devices.}
+  spec.homepage      = "https://github.com/mykhailog/mi-home"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.

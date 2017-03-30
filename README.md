@@ -1,4 +1,4 @@
-# Mi Home
+# Mi Home Ruby Gem
 
 This gem provides simple and flexible ruby API for Xiaomi Mi Home devices.  
 
@@ -48,7 +48,7 @@ platform.connect
 
 platform.devices.socket_plug.on!
 # add event handler when user click on button
-platform.devices.switch_button.click.register do
+platform.devices.switch_button.click.register do 
   light_switch = platform.devices.light_switch
   if light_switch.on?
      light_switch.off!
