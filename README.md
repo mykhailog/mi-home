@@ -11,7 +11,7 @@ Currently supports only Aqara(ZigBee gateway) devices and sensors. Please see th
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'mi-home', git: "git@github.com:mykhailog/mi-home.git"
+gem 'mi-home', git: "git://github.com/mykhailog/mi-home.git"
 ```
 
 And then execute:
