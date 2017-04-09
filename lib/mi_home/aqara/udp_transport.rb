@@ -13,8 +13,9 @@ module MiHome
     def connect
 
       @server_socket = UDPSocket.new
-      ip = IPAddr.new(MULTICAST_ADDRESS).hton + IPAddr.new('0.0.0.0').hton
+      ip = IPAddr.new(MULTICAST_ADDRESS).hton  + IPAddr.new('0.0.0.0').hton
       @server_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
+      @server_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_LOOP, 1)
       @server_socket.bind(Socket::INADDR_ANY, SERVER_PORT)
 
     end
