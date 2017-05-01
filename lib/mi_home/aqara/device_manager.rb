@@ -50,7 +50,6 @@ module MiHome
           device = by_types
         end
       end
-
       device
     end
   end

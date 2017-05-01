@@ -6,7 +6,7 @@ module MiHome
 
       property :on?, changable:true    #if status: "on"
       property :off?, changable:true   #if status: "off"
-      property :used?, in_use: '1'
+      property :used?, inuse: '1'
 
       def toggle!
         if on?
@@ -16,7 +16,7 @@ module MiHome
         end
       end
       # Not supported yet
-      property :load_voltage
+      property :voltage
       property :load_power
       property :power_consumed
     end
