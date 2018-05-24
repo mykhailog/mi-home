@@ -1,17 +1,16 @@
-
 module MiHome
   module Device
-    class AqaraDevice
-      include Unobservable::Support
-      attr_accessor :gateway, :sid,:platform, :data
+    class AqaraDevice  < AbstractDevice
+      attr_accessor :gateway,:sid
       attr_event :changed
-
-
       def initialize
         @data={}
       end
-      def process_message(message)
+      def self.type
+        :aqara
+      end
 
+      def process_message(message)
         @old_values = values
         @data = JSON.parse(message[:data], object_class: HashWithIndifferentAccess)
         @values = values
@@ -45,9 +44,11 @@ module MiHome
           [property,self.send(property)]
         end.to_h
       end
+
+
       def as_json arg=nil
         {
-            id: "aquara_#{sid}",
+            id: sid,
             device_name: name,
             device_model: model,
             type: type,
@@ -56,18 +57,22 @@ module MiHome
             properties: values
         }
       end
+
       alias_method :inspect, :as_json
       def refresh!(sync: false)
         @platform.__request_current_status(self)
         if sync
+            #TODO: implement waiting
             sleep 2 #hope it helps
         end
       end
-      def type
-        self.class.name.underscore.split('/')[-1]
-      end
+
       def self.create(model)
-        MiHome::Device::AqaraDevice.device_class_for(model.to_sym).new
+        device = MiHome::Device::AqaraDevice.device_class_for(model.to_sym)
+        unless device
+          raise "Unsupported device #{model}"
+        end
+        device.new
       end
       def self.supported_devices
         AqaraDevice.devices.map do |klass|
@@ -81,7 +86,7 @@ module MiHome
       end
 
       def self.device_model(model)
-        AqaraDevice.devices[model] = self
+        AqaraDevice.devices[model.to_sym] = self
         define_method :model do
           model
         end

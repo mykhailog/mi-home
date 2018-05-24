@@ -43,7 +43,7 @@ Note that the gateway needs to be at least version 2. Radio support on the gatew
 ### Getting started
 ```ruby
 require 'mi_home'
-platform = MiHome::AqaraPlatform.new(password: "91bg8zfkf9vd6uw7")
+platform = MiHome::Aqara::Platform.new(config:{password: "91bg8zfkf9vd6uw7"})
 platform.connect
 
 platform.devices.socket_plug.on!
@@ -61,7 +61,7 @@ platform.join
 or event simpler:
 ```ruby
 require 'mi_home'
-platform = MiHome::AqaraPlatform.new(password: "91bg8zfkf9vd6uw7")
+platform = MiHome::Aqara::Platform.new(config:{password: "91bg8zfkf9vd6uw7"})
 platform.connect
 platform.devices.with do
     socket_plug.on!
@@ -79,8 +79,8 @@ platform.join
 If you have more than one device with the same type(e.g. two light swtiches,motion sensors, etc) you can find them using several methods:
 1. Namify them and find by name
 ```ruby
-platform = MiHome::AqaraPlatform.new(password: "91bg8zfkf9vd6uw7",
-                                     names:{ living_room_light: "<sid of living room light>",
+platform = MiHome::Aqara::Platform.new(config:{password: "91bg8zfkf9vd6uw7"},
+                                       names:{ living_room_light: "<sid of living room light>",
                                              bathroom_motion_sensor: "<sid of bathroom motion sensor>"
 
 })
@@ -279,11 +279,11 @@ gateway.illumination
 ## Gateway passwords
 If you have more than one gateway you should specify password for each of them:
 ```ruby
-platform = MiHome::AqaraPlatform.new(password: {"<gateway1 sid>": "ABC1237123923A","<gateway2 sid>": "ABC123712B923A"})
+platform = MiHome::Aqara::Platform.new(config:{password: {"<gateway1 sid>": "ABC1237123923A","<gateway2 sid>": "ABC123712B923A"}})
 ```
 If you don't need to do any write action (e.g. turn on/off the light) you may not specify any passwords:
 ```ruby
-platform = MiHome::AqaraPlatform.new
+platform = MiHome::Aqara::Platform.new
 ```
 ## Disconnect
 When you call _platform.connect_ method it automatically creates two threads one of it reads messages from gateway and second track device updates. To terminate threads and finish any processing use _platform.disconnect_ method.
