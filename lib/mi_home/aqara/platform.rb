@@ -4,17 +4,18 @@ module MiHome
     class Platform < AbstractDevicePlatform
 
       include Unobservable::Support
-      attr_accessor :log, :raise_exceptions
+      attr_accessor :log, :raise_exceptions, :server_port
       attr_event :ready
       def self.type
         :aqara
       end
-      def initialize(config:{password: nil, update_device_interval: nil},
+      def initialize(config:{password: nil, update_device_interval: nil, server_port: nil},
                      log: nil,
                      names: {},
                      raise_exceptions: false,
                      debug: false)
         @password = config[:password]
+        @server_port = config[:server_port]
         super(log: log, names: names, raise_exceptions: raise_exceptions, debug: debug)
         unless @password
           log.warn "Password is not specified. You can't do any write functionality (e.g. turn on lights)."
@@ -106,7 +107,7 @@ module MiHome
 
       def listen
         @log.info "Connect to Aqara gateway..."
-        @transport = UdpTransport.new(@log)
+        @transport = UdpTransport.new(@log, server_port: server_port)
         @transport.connect
 
         @log.info "Listen gateway commands..."
