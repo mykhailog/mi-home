@@ -4,13 +4,15 @@ require 'json'
 module MiHome
   module Aqara
     class UdpTransport
+      attr_accessor :server_port
+
       MULTICAST_ADDRESS = '224.0.0.50'
       MULTICAST_PORT = 4321
-      SERVER_PORT = 9898
       AES_IV = [0x17, 0x99, 0x6d, 0x09, 0x3D, 0x28, 0xdd, 0xb3, 0xBA, 0x69, 0x5A, 0x2E, 0x6F, 0x58, 0x56, 0x2e].pack('c*')
 
-      def initialize log
+      def initialize(log, server_port: 9898)
         @log = log
+        self.server_port = server_port
       end
 
       def connect
@@ -19,7 +21,7 @@ module MiHome
         ip = IPAddr.new(MULTICAST_ADDRESS).hton + IPAddr.new('0.0.0.0').hton
         @server_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
         @server_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_LOOP, 1)
-        @server_socket.bind(Socket::INADDR_ANY, SERVER_PORT)
+        @server_socket.bind(Socket::INADDR_ANY, server_port)
 
       end
 
